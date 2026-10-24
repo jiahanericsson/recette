@@ -1,0 +1,11 @@
+# GitHub Pages builds this site with Jekyll automatically.
+title: Recipes
+
+# Each recipe is a file in _recipes/. They are gathered into recipes.json,
+# so no separate page is generated per recipe.
+collections:
+  recipes:
+    output: false
+
+exclude:
+  - README.md

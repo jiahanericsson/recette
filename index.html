@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recipes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf7f2; --surface: #ffffff; --ink: #2a2420; --muted: #7a6f66;
+  --line: #e8e1d7; --accent: #b4532a; --accent-soft: #f6e6dc; --done: #b9b0a7;
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1b1816; --surface: #24201d; --ink: #f1ebe4; --muted: #a59a90;
+    --line: #3a3430; --accent: #e08a5f; --accent-soft: #3a2a22; --done: #6b625b; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--sans); }
+button, input { font: inherit; color: inherit; }
+a { color: var(--accent); }
+
+.app { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; }
+.sidebar { border-right: 1px solid var(--line); position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column; background: var(--bg); }
+.brand { font: 650 1.5rem var(--serif); padding: 20px 20px 8px; margin: 0; }
+.search { margin: 0 16px 8px; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 10px; background: var(--surface); width: calc(100% - 32px); }
+.search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.count { color: var(--muted); font-size: .8rem; padding: 0 20px 8px; }
+.list { list-style: none; margin: 0; padding: 0 8px 24px; overflow-y: auto; flex: 1; }
+.list a { display: block; padding: 8px 12px; border-radius: 8px; text-decoration: none;
+  color: var(--ink); }
+.list a:hover { background: var(--accent-soft); }
+.list a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.list .hint { display: block; font-size: .78rem; color: var(--muted); font-weight: 400; }
+
+main { padding: 32px 40px 80px; max-width: 760px; width: 100%; }
+.back { display: none; }
+.empty { color: var(--muted); margin-top: 20vh; text-align: center; font-family: var(--serif); font-size: 1.25rem; }
+h2.title { font: 650 2.2rem/1.15 var(--serif); margin: 0 0 16px; text-wrap: balance; }
+h3 { font: 500 1.15rem var(--serif); margin: 32px 0 10px; color: var(--muted); }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: none; padding: 6px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.factor { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: .9rem; }
+.factor input { width: 70px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 6px 12px; cursor: pointer; font-size: .9rem; }
+.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.tip { color: var(--muted); font-size: .8rem; margin: 4px 0 0; }
+
+table.ing { width: 100%; border-collapse: collapse; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.ing td { padding: 9px 14px; border-top: 1px solid var(--line); vertical-align: baseline; }
+.ing tr:first-child td { border-top: 0; }
+.ing td.q { text-align: right; white-space: nowrap; width: 1%; font-variant-numeric: tabular-nums; font-weight: 600; }
+.ing td.u { color: var(--muted); width: 1%; white-space: nowrap; padding-left: 0; }
+.ing tr.total td { color: var(--muted); font-weight: 500; background: var(--bg); }
+.qbtn { border: 0; background: none; padding: 0; cursor: pointer; font-weight: 600; border-bottom: 1px dashed var(--muted); }
+.qinput { width: 80px; text-align: right; padding: 2px 6px; border: 1px solid var(--accent); border-radius: 6px; background: var(--surface); }
+
+ol.steps { padding: 0; margin: 0; list-style: none; counter-reset: s; }
+ol.steps li { counter-increment: s; position: relative; padding: 10px 12px 10px 48px;
+  border-radius: 10px; cursor: pointer; }
+ol.steps li:hover { background: var(--surface); }
+ol.steps li::before { content: counter(s); position: absolute; left: 10px; top: 9px; width: 26px; height: 26px;
+  border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: .85rem; font-weight: 600;
+  display: grid; place-items: center; }
+ol.steps li.done { color: var(--done); text-decoration: line-through; }
+ol.steps li.done::before { background: transparent; color: var(--done); content: "\2713"; }
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px 16px; }
+.none { color: var(--muted); font-style: italic; }
+
+@media (max-width: 760px) {
+  .app { display: block; }
+  .sidebar { position: static; height: auto; border-right: 0; }
+  .list { overflow: visible; }
+  main { padding: 16px 16px 64px; }
+  body.reading .sidebar { display: none; }
+  body:not(.reading) main { display: none; }
+  .back { display: inline-block; margin-bottom: 12px; text-decoration: none; font-weight: 500; }
+  h2.title { font-size: 1.8rem; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h1 class="brand">Recipes</h1>
+    <input class="search" id="q" type="search" placeholder="Search recipes or ingredients" autocomplete="off">
+    <div class="count" id="count"></div>
+    <ul class="list" id="list"></ul>
+  </aside>
+  <main id="main"><p class="empty">Pick a recipe.</p></main>
+</div>
+<script>
+let recipes = [];
+let factor = 1;
+let wakeLock = null;
+let wantWake = false;
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = (s) => String(s ?? "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+function fmt(n, unit) {
+  if (n == null || isNaN(n)) return "";
+  const r = (unit === "g" && Math.abs(n) >= 10) ? Math.round(n)
+          : Math.abs(n) >= 100 ? Math.round(n)
+          : Math.round(n * 100) / 100;
+  return String(r);
+}
+
+async function load() {
+  try {
+    const res = await fetch("recipes.json", { cache: "no-cache" });
+    recipes = await res.json();
+  } catch (e) {
+    $("#main").innerHTML = '<p class="empty">Could not load recipes.json.</p>';
+    return;
+  }
+  recipes.forEach((r) => {
+    r.ingredients = r.ingredients || [];
+    r.steps = r.steps || [];
+    r._title = norm(r.title);
+    r._ing = r.ingredients.map((i) => norm(i.name)).join(" | ");
+  });
+  recipes.sort((a, b) => a._title.localeCompare(b._title));
+  renderList();
+  route();
+}
+
+function renderList() {
+  const q = norm($("#q").value.trim());
+  const current = decodeURIComponent(location.hash.slice(2));
+  let html = "", n = 0;
+  for (const r of recipes) {
+    const inTitle = !q || r._title.includes(q);
+    const hit = !inTitle && q ? r.ingredients.find((i) => norm(i.name).includes(q)) : null;
+    if (!inTitle && !hit) continue;
+    n++;
+    html += `<li><a href="#/${encodeURIComponent(r.slug)}" aria-current="${r.slug === current}">${esc(r.title)}` +
+      (hit ? `<span class="hint">uses ${esc(hit.name)}</span>` : "") + `</a></li>`;
+  }
+  $("#list").innerHTML = html || '<li class="count">No matches.</li>';
+  $("#count").textContent = q ? `${n} of ${recipes.length}` : `${recipes.length} recipes`;
+}
+
+function route() {
+  const slug = decodeURIComponent(location.hash.slice(2));
+  const r = recipes.find((x) => x.slug === slug);
+  document.body.classList.toggle("reading", !!r);
+  renderList();
+  if (!r) { $("#main").innerHTML = '<p class="empty">Pick a recipe.</p>'; return; }
+  factor = 1;
+  renderRecipe(r);
+  window.scrollTo(0, 0);
+}
+
+function renderRecipe(r) {
+  const presets = [0.5, 1, 2];
+  const grams = r.ingredients.filter((i) => i.unit === "g" && typeof i.quantity === "number");
+  const total = grams.reduce((s, i) => s + i.quantity, 0);
+  const notes = (r.notes || "").trim();
+  const notesHtml = /<\w+[^>]*>/.test(notes) ? notes : esc(notes).replace(/\n/g, "<br>");
+
+  $("#main").innerHTML = `
+    <a class="back" href="#">&larr; All recipes</a>
+    <h2 class="title">${esc(r.title)}</h2>
+    ${r.ingredients.length ? `
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Scale">
+        ${presets.map((p) => `<button data-f="${p}" aria-pressed="${p === factor}">${p === 0.5 ? "&frac12;" : p}&times;</button>`).join("")}
+      </div>
+      <label class="factor">scale <input id="factor" type="number" min="0" step="0.05" value="${+factor.toFixed(3)}"></label>
+      ${"wakeLock" in navigator ? `<button class="chip" id="wake" aria-pressed="${wantWake}">Keep screen on</button>` : ""}
+    </div>
+    <p class="tip">Tap a quantity to scale the recipe to the amount you have.</p>` : ""}
+    <h3>Ingredients</h3>
+    ${r.ingredients.length ? `<table class="ing"><tbody>
+      ${r.ingredients.map((i, k) => `<tr>
+        <td class="q">${typeof i.quantity === "number" ? `<button class="qbtn" data-k="${k}">${fmt(i.quantity * factor, i.unit)}</button>` : ""}</td>
+        <td class="u">${esc(i.unit)}</td><td>${esc(i.name)}</td></tr>`).join("")}
+      ${grams.length > 1 ? `<tr class="total"><td class="q">${fmt(total * factor, "g")}</td><td class="u">g</td><td>total weight</td></tr>` : ""}
+    </tbody></table>` : '<p class="none">No ingredients yet.</p>'}
+    <h3>Steps</h3>
+    ${r.steps.length ? `<ol class="steps">${r.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : '<p class="none">No steps yet.</p>'}
+    ${notes ? `<h3>Notes</h3><div class="notes">${notesHtml}</div>` : ""}
+  `;
+
+  $("#main").querySelectorAll(".seg button").forEach((b) =>
+    b.addEventListener("click", () => { factor = +b.dataset.f; renderRecipe(r); }));
+  const f = $("#factor");
+  if (f) f.addEventListener("change", () => { const v = parseFloat(f.value); if (v > 0) { factor = v; renderRecipe(r); } });
+  $("#main").querySelectorAll(".qbtn").forEach((b) => b.addEventListener("click", () => editQty(r, b)));
+  $("#main").querySelectorAll("ol.steps li").forEach((li) => li.addEventListener("click", () => li.classList.toggle("done")));
+  const w = $("#wake");
+  if (w) w.addEventListener("click", toggleWake);
+}
+
+function editQty(r, btn) {
+  const ing = r.ingredients[+btn.dataset.k];
+  const input = document.createElement("input");
+  input.type = "number"; input.className = "qinput"; input.min = "0"; input.step = "any";
+  input.value = fmt(ing.quantity * factor, ing.unit);
+  btn.replaceWith(input);
+  input.focus(); input.select();
+  let done = false;
+  const commit = () => {
+    if (done) return; done = true;
+    const v = parseFloat(input.value);
+    if (v > 0 && ing.quantity > 0) factor = v / ing.quantity;
+    renderRecipe(r);
+  };
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") { done = true; renderRecipe(r); } });
+  input.addEventListener("blur", commit);
+}
+
+async function toggleWake() {
+  try {
+    wantWake = !wantWake;
+    if (!wantWake) { if (wakeLock) await wakeLock.release(); wakeLock = null; }
+    else { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); }
+  } catch (e) { wakeLock = null; wantWake = false; }
+  syncWake();
+}
+function syncWake() { const w = $("#wake"); if (w) w.setAttribute("aria-pressed", String(wantWake)); }
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "visible" && wantWake && !wakeLock) {
+    try { wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {}
+  }
+});
+
+$("#q").addEventListener("input", renderList);
+window.addEventListener("hashchange", route);
+load();
+</script>
+</body>
+</html>

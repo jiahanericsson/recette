@@ -1,0 +1,49 @@
+# Pages CMS configuration: https://pagescms.org/docs/configuration/
+content:
+  - name: recipes
+    label: Recipes
+    type: collection
+    path: _recipes
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    view:
+      primary: title
+      fields: [title]
+      sort: [title]
+      search: [title]
+      default:
+        sort: title
+        order: asc
+    fields:
+      - name: title
+        label: Name
+        type: string
+        required: true
+      - name: ingredients
+        label: Ingredients
+        type: object
+        list:
+          collapsible:
+            collapsed: false
+            summary: "{quantity} {unit} {name}"
+        fields:
+          - name: name
+            label: Ingredient
+            type: string
+            required: true
+          - name: quantity
+            label: Quantity
+            type: number
+            description: Number only, decimals OK (e.g. 0.5)
+          - name: unit
+            label: Unit
+            type: string
+            description: g, pc, tsp, tbsp, dL, pinch...
+      - name: steps
+        label: Steps
+        type: text
+        list: true
+      - name: body
+        label: Notes
+        type: text
+        description: Optional. Tips, sources, variations. Markdown works.
